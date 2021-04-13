@@ -260,6 +260,7 @@ PLATFORMS
 
 DEPENDENCIES
   github-pages (~> 214)
+  jekyll-theme-midnight
 
 BUNDLED WITH
    1.16.1

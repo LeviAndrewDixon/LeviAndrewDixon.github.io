@@ -5,9 +5,6 @@ date:   2021-04-11 21:45:39 -0400
 tags: aws emr spark glue hive data_lake
 categories: emr spark glue
 ---
-|Date|
---
-|2021-04-11|
 
 # Configure Spark, Hive, and Presto to transparently update the AWS Glue Catalog on EMR
 
@@ -49,41 +46,46 @@ Using the [Glue][link-glue-components] catalog provides a more central place in 
 
 - Hive (Property file: hive-site.xml, CloudFormation classification: hive-site)
 
-
+```xml
     <property>hive.metastore.client.factory.class</property>
     <value>com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory<value>
     <property>hive.metastore.schema.verification</property>
     <value>false</value>
-- Spark
+  ```
+- Spark (Property file: hive-site.xml, CloudFormation classification: spark-hive-site)
 
+```xml
     <property>hive.metastore.client.factory.class</property>
     <value>com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory<value>
     <property>hive.metastore.schema.verification</property>
     <value>false</value>
+```
 
 - Presto
 
 Or via CloudFormation:
 
-    {
-      "Classification": "hive-site",
-      "Properties": {
-        "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory",
-        "hive.metastore.schema.verification": "false"
-      }
+```json
+{
+  "Classification": "hive-site",
+  "Properties": {
+    "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory",
+    "hive.metastore.schema.verification": "false"
+  }
+}
+{
+  "Classification": "spark-hive-site",
+  "ConfigurationProperties": {
+    "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
+    "hive.metastore.schema.verification": "false"
+},
+{
+  "Classification": "presto-connector-hive",
+  "ConfigurationProperties": {
+    "hive.metastore": "glue"
     }
-    {
-      "Classification": "spark-hive-site",
-      "ConfigurationProperties": {
-        "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
-        "hive.metastore.schema.verification": "false"
-    },
-    {
-      "Classification": "presto-connector-hive",
-      "ConfigurationProperties": {
-        "hive.metastore": "glue"
-        }
-    },
+}
+```
 
 ## Application
 
@@ -93,12 +95,14 @@ Spark SQL queries will update the Glue Catalog instead of the Hive Metastore.
 
 Pyspark or Spark programs will update the Glue catalog instead of the Hive Metastore.
 
-    val spark = SparkSession
-      .builder()
-      .appName("Spark Hive Example")
-      .config("spark.sql.warehouse.dir", warehouseLocation)
-      .enableHiveSupport()
-      .getOrCreate()
+```python
+val spark = SparkSession
+  .builder()
+  .appName("Spark Hive Example")
+  .config("spark.sql.warehouse.dir", warehouseLocation)
+  .enableHiveSupport()
+  .getOrCreate()
+```
 
 ## Alternatives
 
